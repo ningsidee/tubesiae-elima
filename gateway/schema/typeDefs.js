@@ -17,6 +17,13 @@ const typeDefs = gql`
     role: String!
   }
 
+  input UpdateUserInput {
+    name: String
+    email: String
+    password_hash: String # Optional untuk update
+    role: String
+  }
+
   # Product Types
   type Product {
     id: ID!
