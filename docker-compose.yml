@@ -1,0 +1,112 @@
+version: "3.8"
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: hotel_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - hotel_network
+
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: hotel_user_service
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/user_service
+      - PORT=3001
+    depends_on:
+      - mongodb
+    networks:
+      - hotel_network
+
+  # Product Service
+  product-service:
+    build: ./product-service
+    container_name: hotel_product_service
+    ports:
+      - "3002:3002"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/product_service
+      - PORT=3002
+    depends_on:
+      - mongodb
+    networks:
+      - hotel_network
+
+  # Order Service
+  order-service:
+    build: ./order-service
+    container_name: hotel_order_service
+    ports:
+      - "3003:3003"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/order_service
+      - PORT=3003
+    depends_on:
+      - mongodb
+    networks:
+      - hotel_network
+
+  # Payment Service
+  payment-service:
+    build: ./payment-service
+    container_name: hotel_payment_service
+    ports:
+      - "3004:3004"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/payment_service
+      - PORT=3004
+    depends_on:
+      - mongodb
+    networks:
+      - hotel_network
+
+  # Review Service
+  review-service:
+    build: ./review-service
+    container_name: hotel_review_service
+    ports:
+      - "3005:3005"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/review_service
+      - PORT=3005
+    depends_on:
+      - mongodb
+    networks:
+      - hotel_network
+
+  # GraphQL Gateway
+  graphql-gateway:
+    build: ./gateway
+    container_name: hotel_graphql_gateway
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - USER_SERVICE_URL=http://user-service:3001/api/users
+      - PRODUCT_SERVICE_URL=http://product-service:3002/api/products
+      - ORDER_SERVICE_URL=http://order-service:3003/api/orders
+      - PAYMENT_SERVICE_URL=http://payment-service:3004/api/payments
+      - REVIEW_SERVICE_URL=http://review-service:3005/api/reviews
+      - ROOM_SERVICE_URL=http://host.docker.internal:8001/graphql
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+      - payment-service
+      - review-service
+    networks:
+      - hotel_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  hotel_network:
+    driver: bridge
